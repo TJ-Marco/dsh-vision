@@ -19,11 +19,13 @@ jobs:
       - name: Install dependencies
         run: |
           python -m pip install --upgrade pip
-          # 测试使用假模型（见 tests/conftest.py），无需安装 torch/ultralytics 等重型依赖；
-          # 安装核心运行依赖 + 测试工具即可，保证 CI 快速且确定性。
-          pip install fastapi "uvicorn[standard]" pydantic pydantic-settings \
+          # 版本固定与本地验证环境一致：
+          #   - ruff 0.5.x：已提交代码按该版本格式化
+          #   - fastapi <0.141：0.141+ 新增 annotated-doc 依赖，本仓库未引入
+          # 测试使用假模型（见 tests/conftest.py），无需 torch/ultralytics 等重型依赖。
+          pip install "fastapi>=0.111,<0.141" "uvicorn[standard]" pydantic pydantic-settings \
             python-multipart httpx numpy opencv-python-headless pillow pyyaml \
-            pytest ruff
+            pytest "ruff>=0.5.7,<0.6"
 
       - name: Lint with ruff
         run: ruff check app scripts tests examples
