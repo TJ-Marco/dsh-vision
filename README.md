@@ -1,54 +1,54 @@
 # dsh-vision
 
-> 供 DeepSeek（及任意 LLM agent）通过 function calling 调用的开源视觉识别服务：
-> **图像识别**（目标检测 / 图像描述 / 场景分类 / OCR / 人脸）+ **视频识别**（抽帧 + 时间戳）。
-> FastAPI HTTP API + Python SDK，独立运行，**不依赖任何 DeepSeek 内部服务**。
+> An open-source vision recognition service designed to be called by DeepSeek (or any LLM agent) via function calling:
+> **image recognition** (object detection / image captioning / scene classification / OCR / face) + **video recognition** (frame sampling + timestamps).
+> FastAPI HTTP API + Python SDK, fully standalone — **no dependency on any DeepSeek internal service**.
 
-## 特性
+English | [中文](README.zh.md)
 
-- 🖼️ **图像识别**：目标检测（YOLOv8）、图像描述（BLIP）、场景分类（CLIP 零样本）、
-  文字识别（PaddleOCR / EasyOCR 可切换）、人脸检测与特征摘要（InsightFace）
-- 🎬 **视频识别**：ffmpeg/OpenCV 抽帧（均匀采样 / 场景切换）、并行推理、
-  逐帧时间戳 + 事件时间线聚合
-- 🔌 **双输入**：文件上传与图片/视频 URL 均支持
-- 📦 **模型不入库**：首次运行自动下载到缓存目录（可预下载、SHA256 校验、断点续传）
-- 🤖 **原生适配 function calling**：OpenAPI 自动生成，注册工具参数即用
-- 🐳 **Docker 一键部署**（CPU / GPU 双版本）
-- 🧩 **模型可替换**：统一抽象接口，换模型只换一个工厂函数
+## Features
 
-## 快速开始
+- 🖼️ **Image recognition**: object detection (YOLOv8), image captioning (BLIP), zero-shot scene classification (CLIP), OCR (PaddleOCR / EasyOCR switchable), face detection with feature digest (InsightFace)
+- 🎬 **Video recognition**: frame extraction via ffmpeg/OpenCV (uniform sampling / scene-change detection), parallel inference, per-frame timestamps + event timeline aggregation
+- 🔌 **Dual input**: file upload and image/video URLs both supported
+- 📦 **Models are not bundled**: downloaded automatically to a cache directory on first use (pre-download supported, SHA-256 verified, resumable)
+- 🤖 **Function-calling ready**: OpenAPI generated automatically — register tool parameters and use
+- 🐳 **One-command Docker deployment** (CPU / GPU variants)
+- 🧩 **Swappable models**: unified abstraction interface — swap a model by replacing one factory function
 
-### 1. 安装
+## Quick Start
+
+### 1. Install
 
 ```bash
 git clone <your-fork-url> && cd dsh-vision
 python -m venv .venv && source .venv/bin/activate    # Windows: .venv\Scripts\activate
-pip install -r requirements-cpu.txt                  # CPU 部署；GPU 用 requirements-gpu.txt
+pip install -r requirements-cpu.txt                  # CPU; use requirements-gpu.txt for GPU
 ```
 
-### 2. 启动服务
+### 2. Start the server
 
 ```bash
-# 可选：预下载模型权重（否则首次调用自动下载）
+# Optional: pre-download model weights (otherwise they auto-download on first use)
 python scripts/download_models.py
 
 uvicorn app.main:app --host 0.0.0.0 --port 8000
 ```
 
-### 3. 图像识别
+### 3. Image recognition
 
 ```bash
-# 文件上传
+# File upload
 curl -X POST http://127.0.0.1:8000/api/image \
      -F "file=@photo.jpg" -F "tasks=objects,caption,scene,ocr,faces"
 
-# 或图片 URL
+# Or image URL
 curl -X POST http://127.0.0.1:8000/api/image \
      -H "Content-Type: application/json" \
      -d '{"image_url": "https://example.com/photo.jpg", "tasks": ["objects", "ocr"]}'
 ```
 
-### 4. 视频识别
+### 4. Video recognition
 
 ```bash
 curl -X POST http://127.0.0.1:8000/api/video \
@@ -61,31 +61,31 @@ curl -X POST http://127.0.0.1:8000/api/video \
 from app.sdk import VisionClient
 
 with VisionClient("http://127.0.0.1:8000") as client:
-    # 图像：本地路径 / 字节 / URL 均可
+    # Image: local path / bytes / URL all accepted
     result = client.recognize_image("photo.jpg", tasks=["objects", "scene"])
     result = client.recognize_image_url("https://example.com/a.jpg", min_confidence=0.5)
 
-    # 视频
+    # Video
     result = client.recognize_video("clip.mp4", fps=1.0, max_frames=60, tasks=["objects", "ocr"])
 ```
 
-完整示例见 [`examples/image_example.py`](examples/image_example.py) 与 [`examples/video_example.py`](examples/video_example.py)。
+Full examples: [`examples/image_example.py`](examples/image_example.py) and [`examples/video_example.py`](examples/video_example.py).
 
-## 与 DeepSeek function calling 集成
+## Integration with DeepSeek function calling
 
-1. 启动服务后，`GET http://<host>:8000/openapi.json` 即为完整 OpenAPI 规范；
-2. 在 DeepSeek 侧注册工具（参数与 `/api/image` 一一对应）：
+1. Start the server, then `GET http://<host>:8000/openapi.json` is the full OpenAPI spec;
+2. Register a tool on the DeepSeek side (parameters mirror `POST /api/image`):
 
 ```jsonc
 {
   "type": "function",
   "function": {
     "name": "vision_recognize_image",
-    "description": "识别图片内容：目标、场景、文字、人脸、图像描述。输入图片 URL。",
+    "description": "Recognize image content: objects, scene, text, faces, caption. Takes an image URL.",
     "parameters": {
       "type": "object",
       "properties": {
-        "image_url": { "type": "string", "description": "图片的公开 HTTP(S) URL" },
+        "image_url": { "type": "string", "description": "A public HTTP(S) URL of the image" },
         "tasks": {
           "type": "array",
           "items": { "type": "string", "enum": ["objects", "caption", "scene", "ocr", "faces"] }
@@ -98,19 +98,19 @@ with VisionClient("http://127.0.0.1:8000") as client:
 }
 ```
 
-调用链：`DeepSeek → function calling(HTTP POST /api/image) → JSON 回填`，服务端零耦合、可独立部署。
+Call chain: `DeepSeek → function calling(HTTP POST /api/image) → JSON returned` — zero coupling, fully standalone deployment.
 
-## API 文档
+## API Documentation
 
-| 方法 | 路径 | 说明 |
+| Method | Path | Description |
 |---|---|---|
-| GET | `/health` | 存活检查（版本 / 设备 / 已加载模型） |
-| GET | `/models` | 模型清单与许可 |
-| POST | `/api/image` | 图像识别 |
-| POST | `/api/video` | 视频识别 |
-| GET | `/openapi.json` | OpenAPI 规范（function calling 注册用） |
+| GET | `/health` | Liveness (version / device / loaded models) |
+| GET | `/models` | Model inventory and licenses |
+| POST | `/api/image` | Image recognition |
+| POST | `/api/video` | Video recognition |
+| GET | `/openapi.json` | OpenAPI spec (for function-calling registration) |
 
-### 图像识别响应示例
+### Image response example
 
 ```jsonc
 {
@@ -126,9 +126,9 @@ with VisionClient("http://127.0.0.1:8000") as client:
 }
 ```
 
-> 人脸仅返回特征摘要（`embedding_md5`），不返回原始 512 维向量，避免高敏生物特征进入对话上下文。
+> Faces return only a feature digest (`embedding_md5`), never the raw 512-d embedding, so sensitive biometric data never enters the conversation context.
 
-### 视频识别响应示例
+### Video response example
 
 ```jsonc
 {
@@ -137,91 +137,88 @@ with VisionClient("http://127.0.0.1:8000") as client:
   "results": [
     { "frame_index": 0, "timestamp_sec": 0.0, "objects": [...], "text": [...], "faces": [...] }
   ],
-  "timeline": [   // 聚合事件：同一目标连续出现的时间段
+  "timeline": [   // aggregated events: continuous time ranges per target
     { "event": "car", "start_sec": 0.0, "end_sec": 12.5, "max_confidence": 0.95 }
   ],
   "processing_time_ms": 15023
 }
 ```
 
-### 错误约定
+### Error conventions
 
-| HTTP | 场景 |
+| HTTP | Scenario |
 |---|---|
-| 400 | 图片/视频无法解码、URL 下载失败、任务名/策略未知 |
-| 404 | 请求的模型未注册 |
-| 422 | 参数校验失败 |
-| 503 | 模型未启用、权重缺失或正在下载 |
+| 400 | Undecodable image/video, URL download failure, unknown task/strategy |
+| 404 | Requested model not registered |
+| 422 | Parameter validation failure |
+| 503 | Model disabled, weights missing, or still downloading |
 
-错误响应体：`{"error": "<机器可读错误码>", "message": "<说明>", "request_id": "..."}`。
+Error body: `{"error": "<machine-readable code>", "message": "<description>", "request_id": "..."}`.
 
-## Docker 部署
+## Docker Deployment
 
-**CPU 版**：
+**CPU**:
 
 ```bash
 docker build -f docker/Dockerfile -t dsh-vision:0.1.0 .
 docker run -p 8000:8000 -v dsh-vision-models:/models dsh-vision:0.1.0
-# 或
+# or
 docker compose -f docker/compose.yaml up -d
 ```
 
-**GPU 版**（宿主机需 NVIDIA Container Toolkit）：
+**GPU** (host needs NVIDIA Container Toolkit):
 
 ```bash
 docker build -f docker/Dockerfile.gpu -t dsh-vision:gpu .
 docker run --gpus all -p 8000:8000 -v dsh-vision-models:/models dsh-vision:gpu
 ```
 
-模型缓存挂载在 `/models` 卷，首次请求自动下载，重启不重复下载。
+Model cache is mounted on the `/models` volume — downloaded on first request, not re-downloaded on restart.
 
-## 模型许可列表
+## Model License List
 
-> 本项目代码采用 **MIT License**；依赖模型的许可以下逐项列出，请在使用/再分发前自行核验最新条款。
+> Project code is **MIT licensed**; the licenses of dependency models are listed below — verify the latest terms before use/re-distribution.
 
-| 功能 | 模型 | 框架 | 许可 ⚠️ |
+| Feature | Model | Framework | License ⚠️ |
 |---|---|---|---|
-| 目标检测 | YOLOv8n（COCO-80） | ultralytics / onnxruntime | **AGPL-3.0** |
-| 图像描述 | BLIP-base（Salesforce） | transformers | BSD-3-Clause（权重需核验） |
-| 场景分类 | CLIP ViT-B/32（OpenAI） | transformers | MIT |
+| Object detection | YOLOv8n (COCO-80) | ultralytics / onnxruntime | **AGPL-3.0** |
+| Image captioning | BLIP-base (Salesforce) | transformers | BSD-3-Clause (verify weights) |
+| Scene classification | CLIP ViT-B/32 (OpenAI) | transformers | MIT |
 | OCR | PaddleOCR PP-OCRv4 | paddleocr | Apache-2.0 |
-| OCR（备选） | EasyOCR | easyocr | Apache-2.0 |
-| 人脸 | InsightFace buffalo_l | insightface | MIT（模型包需核验） |
+| OCR (alternative) | EasyOCR | easyocr | Apache-2.0 |
+| Face | InsightFace buffalo_l | insightface | MIT (verify model pack) |
 
-**关于 AGPL-3.0**：YOLOv8/ultralytics 为 AGPL-3.0 依赖。作为依赖使用不影响本项目 MIT 分发；
-若需要完全规避 AGPL，可将检测器替换为 torchvision Faster R-CNN（BSD-3-Clause）等——本项目通过
-`BaseVisionModel` 抽象支持无痛替换（实现一个工厂函数即可）。
+**About AGPL-3.0**: YOLOv8/ultralytics is an AGPL-3.0 dependency. Using it as a dependency does not affect the MIT distribution of this project; if you need to avoid AGPL entirely, swap the detector for e.g. torchvision Faster R-CNN (BSD-3-Clause) — the `BaseVisionModel` abstraction makes this a drop-in replacement (implement one factory function).
 
-## 配置
+## Configuration
 
-`config.yaml` 支持全部运行配置（端口、模型缓存目录、设备、置信度阈值、OCR 引擎/语言、抽帧参数等），
-关键项可用环境变量覆盖：
+`config.yaml` covers all runtime settings (port, model cache dir, device, confidence thresholds, OCR engine/languages, sampling parameters, etc.); key items can be overridden with environment variables:
 
-| 环境变量 | 说明 |
+| Env var | Description |
 |---|---|
-| `DSH_VISION_CACHE` | 模型缓存目录 |
+| `DSH_VISION_CACHE` | Model cache directory |
 | `DSH_VISION_DEVICE` | `auto` / `cuda` / `cpu` |
-| `DSH_VISION_AUTO_DOWNLOAD` | `true` / `false`（首次调用是否自动下载权重） |
-| `DSH_VISION_CONFIG` | 配置文件路径 |
+| `DSH_VISION_AUTO_DOWNLOAD` | `true` / `false` (auto-download weights on first use) |
+| `DSH_VISION_CONFIG` | Config file path |
 
-## 开发与测试
+## Development & Testing
 
 ```bash
 pip install -r requirements-dev.txt
-ruff check app scripts tests examples     # PEP8 自查
-python -m pytest tests                    # 单元测试（假模型，无需权重）
+ruff check app scripts tests examples     # PEP8 self-check
+python -m pytest tests                    # unit tests (fake models, no weights needed)
 ```
 
-## 如何贡献
+## How to Contribute
 
-提交信息规范、版本标签约定与发布检查清单见 [CONTRIBUTING.md](CONTRIBUTING.md)。基本流程：
+See [CONTRIBUTING.md](CONTRIBUTING.md) for commit conventions, versioning, and the release checklist. In short:
 
-1. Fork 本仓库并创建特性分支；
-2. 遵守 PEP8（ruff 检查通过）、补充测试、保持中文注释与英文代码注释的既有风格；
-3. 提交前运行 `ruff check` 与 `python -m pytest tests`；
-4. 发起 Pull Request，说明改动与验证方式。
+1. Fork this repository and create a feature branch;
+2. Follow PEP8 (ruff clean), add tests, keep existing comment style (Chinese prose / English code comments);
+3. Run `ruff check` and `python -m pytest tests` before committing;
+4. Open a Pull Request describing the change and how it was verified.
 
 ## License
 
-代码：MIT License（见 [LICENSE](LICENSE)）。
-依赖模型的许可见上方「模型许可列表」。
+Code: MIT License (see [LICENSE](LICENSE)).
+Dependency models: see the Model License List above.

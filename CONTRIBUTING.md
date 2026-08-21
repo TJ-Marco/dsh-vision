@@ -1,66 +1,66 @@
-# 贡献指南
+# Contributing
 
-感谢你对 dsh-vision 的兴趣！请遵循以下约定，让协作更顺畅。
+Thanks for your interest in dsh-vision! Please follow the conventions below to keep collaboration smooth.
 
-## 提交信息规范（Conventional Commits）
+## Commit Message Convention (Conventional Commits)
 
-采用 [Conventional Commits](https://www.conventionalcommits.org/zh-hans/) 格式：
+Use [Conventional Commits](https://www.conventionalcommits.org/):
 
 ```
-<type>(<scope>): <描述>
+<type>(<scope>): <description>
 
-[正文：说明改动动机与验证方式]
+[body: explain the motivation and how it was verified]
 ```
 
-常用 `type`：
+Common `type` values:
 
-| type | 含义 |
+| type | Meaning |
 |---|---|
-| `feat` | 新功能 |
-| `fix` | 缺陷修复 |
-| `refactor` | 重构（行为不变） |
-| `test` | 测试相关 |
-| `docs` | 文档 |
-| `ci` / `build` | CI / 构建配置 |
-| `chore` | 杂项（依赖、格式化等） |
+| `feat` | New feature |
+| `fix` | Bug fix |
+| `refactor` | Refactor (no behavior change) |
+| `test` | Tests |
+| `docs` | Documentation |
+| `ci` / `build` | CI / build config |
+| `chore` | Misc (deps, formatting, etc.) |
 
-`scope` 可省略；如涉及具体模块可写，例如 `feat(video): 支持场景切换抽帧`。
+`scope` is optional; use it when the change targets a specific module, e.g. `feat(video): support scene-change frame sampling`.
 
-示例：
+Examples:
 
 ```
-feat(api): 新增 /api/face/verify 端点
+feat(api): add /api/face/verify endpoint
 
-- 基于注册表的 embedding 做余弦相似度比对
-- 新增 tests/test_face_verify.py（5 个用例）
+- cosine similarity over registry embeddings
+- add tests/test_face_verify.py (5 cases)
 ```
 
-## 版本标签（SemVer）
+## Version Tags (SemVer)
 
-发布版本使用语义化版本号，格式 `v<major>.<minor>.<patch>`，例如：
+Releases use semantic versioning in the form `v<major>.<minor>.<patch>`, e.g.:
 
 ```bash
 git tag v0.1.0
 git push origin v0.1.0
 ```
 
-- 打 `v*` 标签会触发 GitHub Actions 自动构建并推送 Docker 镜像（ghcr.io）。
-- 破坏性 API 变更 → `major`；新增向后兼容功能 → `minor`；缺陷修复 → `patch`。
-- 0.x 阶段：`minor` 可视为破坏性变更（0.1 → 0.2 允许不兼容）。
+- Pushing a `v*` tag triggers GitHub Actions to build and push the Docker image (ghcr.io).
+- Breaking API changes → `major`; backward-compatible features → `minor`; bug fixes → `patch`.
+- During 0.x: treat `minor` as potentially breaking (0.1 → 0.2 may be incompatible).
 
-## 发布检查清单
+## Release Checklist
 
-- [ ] `ruff check app scripts tests examples` 通过
-- [ ] `ruff format app scripts tests examples --check` 通过
-- [ ] `python -m pytest tests` 全绿
-- [ ] `scripts/download_models.py` 可下载各模型（至少目标检测）
-- [ ] Docker 镜像可构建、`/health` 返回 200
-- [ ] README 的「模型许可列表」与 `models.json` 一致
-- [ ] 更新版本号（`app/__init__.py` 与标签一致）
-- [ ] 打标签：`git tag v0.1.0 && git push origin v0.1.0`
+- [ ] `ruff check app scripts tests examples` passes
+- [ ] `ruff format app scripts tests examples --check` passes
+- [ ] `python -m pytest tests` is green
+- [ ] `scripts/download_models.py` can download each model (at least object detection)
+- [ ] Docker image builds and `/health` returns 200
+- [ ] The Model License List in README matches `models.json`
+- [ ] Version bumped (`app/__init__.py` matches the tag)
+- [ ] Tag: `git tag v0.1.0 && git push origin v0.1.0`
 
-## 仓库简介（GitHub description）
+## Repository Description (GitHub)
 
-一句话简介（发布时填写到仓库设置）：
+One-liner for the repository settings:
 
-> 供 DeepSeek 通过 function calling 调用的开源视觉识别服务：图像与视频的目标检测、描述、场景、OCR 与人脸识别，FastAPI + Python SDK + Docker 一键部署。
+> Open-source vision recognition service for DeepSeek function calling: object detection, captioning, scene, OCR and face recognition for images and videos — FastAPI + Python SDK + one-command Docker deployment.
