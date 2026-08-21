@@ -1,0 +1,50 @@
+# ---- Python ----
+__pycache__/
+*.py[cod]
+*.egg-info/
+.eggs/
+.venv/
+venv/
+env/
+.env
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.coverage
+.coverage.*
+htmlcov/
+coverage.xml
+
+# ---- 模型缓存（不入库，运行时自动下载）----
+.models/
+models_cache/
+cache/
+*.pt
+*.onnx
+*.pth
+*.engine
+!tests/fixtures/*.pt
+
+# ---- 上传/临时文件与调试残留 ----
+uploads/
+tmp/
+*.tmp
+*.log
+pytest-cache-files-*/
+
+# ---- IDE / 编辑器 ----
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# ---- 构建产物与归档 ----
+dist/
+build/
+*.egg
+*.whl
+*.tar.gz
+
+# ---- 系统 ----
+.DS_Store
+Thumbs.db

@@ -1,0 +1,10 @@
+# CPU 部署依赖（推荐无 GPU 时使用）：
+#   pip install -r requirements-cpu.txt
+#
+# 说明：
+#   - Windows 下 PyPI 的 torch 默认即 CPU 版，无需额外索引；
+#   - Linux 下如需强制 CPU 版 torch，请先执行：
+#       pip install torch --index-url https://download.pytorch.org/whl/cpu
+#   - paddlepaddle 安装 CPU 版即可。
+-r requirements.txt
+paddlepaddle>=2.6

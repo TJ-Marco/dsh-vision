@@ -1,0 +1,27 @@
+# dsh-vision Docker Compose（CPU 版）
+# 启动：docker compose -f docker/compose.yaml up -d
+services:
+  vision:
+    build:
+      context: ..
+      dockerfile: docker/Dockerfile
+    image: dsh-vision:0.1.0
+    ports:
+      - "8000:8000"
+    volumes:
+      - dsh-vision-models:/models   # 模型缓存持久化
+    restart: unless-stopped
+    # GPU 部署（取消注释并注释掉上面的 build.dockerfile 行）：
+    # build:
+    #   context: ..
+    #   dockerfile: docker/Dockerfile.gpu
+    # deploy:
+    #   resources:
+    #     reservations:
+    #       devices:
+    #         - driver: nvidia
+    #           count: all
+    #           capabilities: [gpu]
+
+volumes:
+  dsh-vision-models:

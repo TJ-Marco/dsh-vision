@@ -1,0 +1,43 @@
+# syntax=docker/dockerfile:1
+# dsh-vision GPU 版（需宿主机安装 NVIDIA Container Toolkit）
+# 构建：docker build -f docker/Dockerfile.gpu -t dsh-vision:gpu .
+# 运行：docker run --gpus all -p 8000:8000 -v dsh-vision-models:/models dsh-vision:gpu
+
+# ---- Stage 1: 安装依赖 ----
+FROM nvidia/cuda:12.1.1-runtime-ubuntu22.04 AS builder
+WORKDIR /build
+COPY requirements.txt .
+# GPU 版安装说明：torch 按 CUDA 版本装（见 requirements-gpu.txt）
+RUN pip install --no-cache-dir --prefix=/install -r requirements.txt
+
+# ---- Stage 2: 运行镜像 ----
+FROM nvidia/cuda:12.1.1-runtime-ubuntu22.04 AS runtime
+
+ENV NVIDIA_VISIBLE_DEVICES=all \
+    NVIDIA_DRIVER_CAPABILITIES=compute,utility
+
+RUN apt-get update \
+    && apt-get install -y --no-install-recommends python3-pip ffmpeg \
+    && rm -rf /var/lib/apt/lists/*
+
+ENV DSH_VISION_CACHE=/models \
+    PYTHONDONTWRITEBYTECODE=1 \
+    PYTHONUNBUFFERED=1
+
+COPY --from=builder /install /usr/local
+
+WORKDIR /app
+COPY app ./app
+COPY config.yaml models.json ./
+
+RUN useradd --create-home --uid 10001 dsh \
+    && mkdir -p /models \
+    && chown -R dsh:dsh /models /app
+USER dsh
+
+EXPOSE 8000
+
+HEALTHCHECK --interval=30s --timeout=10s --start-period=20s --retries=3 \
+    CMD python -c "import urllib.request;urllib.request.urlopen('http://127.0.0.1:8000/health', timeout=5)"
+
+CMD ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8000"]

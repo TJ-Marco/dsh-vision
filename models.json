@@ -1,0 +1,48 @@
+{
+  "$comment": "模型清单：由 app/core/downloader.py 与 scripts/download_models.py 消费。source 支持 http(s):// 直链、huggingface://<repo> 与 paddle://<内置模型> 三种形式；sha256 为发布时校验值，首次下载后 downloader 会把实际校验值记录到缓存目录 .sha256.json，供后续启动快速核验；license 用于 /models 接口展示与 README 许可列表。",
+  "models": {
+    "object_detection": {
+      "id": "yolov8n",
+      "source": "https://github.com/ultralytics/assets/releases/download/v8.2.0/yolov8n.pt",
+      "filename": "yolov8n.pt",
+      "sha256": null,
+      "license": "AGPL-3.0",
+      "size_hint_mb": 6,
+      "enabled": true
+    },
+    "captioning": {
+      "id": "blip-image-captioning-base",
+      "source": "huggingface://Salesforce/blip-image-captioning-base",
+      "sha256": null,
+      "license": "BSD-3-Clause",
+      "size_hint_mb": 990,
+      "enabled": true
+    },
+    "scene": {
+      "id": "clip-vit-base-patch32",
+      "source": "huggingface://openai/clip-vit-base-patch32",
+      "sha256": null,
+      "license": "MIT",
+      "size_hint_mb": 605,
+      "enabled": true
+    },
+    "ocr": {
+      "id": "ppocrv4",
+      "source": "paddle://PP-OCRv4/ch",
+      "sha256": null,
+      "license": "Apache-2.0",
+      "size_hint_mb": 20,
+      "enabled": true
+    },
+    "faces": {
+      "id": "buffalo_l",
+      "source": "https://github.com/deepinsight/insightface/releases/download/v0.7/buffalo_l.zip",
+      "filename": "buffalo_l.zip",
+      "extract": "models/buffalo_l",
+      "sha256": null,
+      "license": "MIT (weights: verify before release)",
+      "size_hint_mb": 310,
+      "enabled": true
+    }
+  }
+}

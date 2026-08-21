@@ -1,0 +1,4 @@
+# 轻量 OCR 备用方案（Apache-2.0，精度略低、速度较慢）：
+#   pip install -r requirements-ocr-easy.txt
+# 安装后在 config.yaml 中设置 ocr.engine: easy 即可切换。
+easyocr>=1.7

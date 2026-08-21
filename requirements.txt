@@ -1,0 +1,36 @@
+# dsh-vision 核心运行时依赖
+# 注意：
+#   - torch / paddlepaddle 的安装方式因平台（CPU/GPU）而异，见
+#     requirements-cpu.txt 与 requirements-gpu.txt（二选一，通常可跳过本文件
+#     直接按平台文件安装；本文件仍可单独使用，pip 会按默认源解析 torch）。
+#   - ultralytics(YOLOv8) 为 AGPL-3.0，见 README「模型许可列表」章节。
+
+# --- Web / API ---
+fastapi>=0.115,<1.0
+uvicorn[standard]>=0.30
+pydantic>=2.7
+pydantic-settings>=2.3
+python-multipart>=0.0.9
+
+# --- 网络（URL 下载 + Python SDK）---
+httpx>=0.27
+
+# --- 数值与图像基础 ---
+numpy>=1.26,<2.0
+opencv-python-headless>=4.9
+pillow>=10.3
+pyyaml>=6.0
+
+# --- 视觉模型 ---
+# 目标检测：YOLOv8（AGPL-3.0）
+ultralytics>=8.2
+# 图像描述 BLIP + 场景分类 CLIP（transformers 会自动解析 torch）
+transformers>=4.40
+# OCR：PaddleOCR（依赖 paddlepaddle；切换 EasyOCR 见 requirements-ocr-easy.txt）
+paddleocr>=2.7
+# 人脸：InsightFace（onnxruntime 后端）
+insightface>=0.7.3
+onnxruntime>=1.17
+
+# --- 视频抽帧 ---
+ffmpeg-python>=0.2.0

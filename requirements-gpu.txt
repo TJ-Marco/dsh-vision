@@ -1,0 +1,9 @@
+# GPU 部署依赖（推荐有 NVIDIA GPU 时使用）：
+#   pip install -r requirements-gpu.txt
+#
+# 说明：
+#   - 请按 CUDA 版本选择 torch 安装命令，例如 CUDA 12.1：
+#       pip install torch --index-url https://download.pytorch.org/whl/cu121
+#   - paddlepaddle-gpu 按 CUDA 版本选择 wheel（见 PaddlePaddle 官方安装文档）。
+-r requirements.txt
+paddlepaddle-gpu>=2.6
