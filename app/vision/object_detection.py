@@ -90,17 +90,46 @@ class YoloDetector(BaseVisionModel):
             ) from exc
 
         self._model = YOLO(str(weight))
+        # 强制 fp32：部分发布权重为 fp16，本机 CPU 上 fp16 推理会输出垃圾结果
+        self._model.model = self._model.model.float()
         self._names = list(self._model.names.values())
         self._use_onnx = False
 
     def _predict_ultralytics(self, image_bgr: np.ndarray, min_conf: float):
-        results = self._model.predict(source=image_bgr, conf=min_conf, verbose=False)
-        boxes = results[0].boxes
-        return (
-            boxes.xyxy.cpu().numpy(),
-            boxes.conf.cpu().numpy(),
-            boxes.cls.cpu().numpy().astype(int),
-        )
+        """手动推理管线（绕开 ultralytics predict 的输入处理）。
+
+        实测在部分 torch CPU 环境下，``model.predict`` 的预处理会篡改输入张量
+        （全零或数值放大），导致全部类别置信度饱和为 1.0 的垃圾输出；改为
+        LetterBox → 归一化 → 直接前向 → NMS，并把结果映射回原图坐标。
+        """
+        import torch
+        from ultralytics.data.augment import LetterBox
+        from ultralytics.utils.ops import non_max_suppression
+
+        height, width = image_bgr.shape[:2]
+        letterboxed = LetterBox(new_shape=640, stride=32, auto=True)(image=image_bgr)
+        im = letterboxed[..., ::-1].transpose((2, 0, 1))[None].astype(np.float32)
+        im = np.ascontiguousarray(im) / 255.0
+
+        with torch.no_grad():
+            out = self._model.model(torch.from_numpy(im))
+        raw = out[0] if isinstance(out, (list, tuple)) else out
+        pred = non_max_suppression(raw, conf_thres=min_conf, iou_thres=0.45)[0]
+        if pred is None or len(pred) == 0:
+            return np.empty((0, 4)), np.empty(0), np.empty(0, dtype=int)
+
+        # letterbox 坐标 → 原图坐标（与 ultralytics LetterBox 的缩放/居中填充对应）
+        scale = min(640 / height, 640 / width)
+        new_w, new_h = round(width * scale), round(height * scale)
+        pad_x = (640 - new_w) % 32 / 2
+        pad_y = (640 - new_h) % 32 / 2
+        boxes = pred[:, :4].numpy()
+        boxes[:, [0, 2]] = (boxes[:, [0, 2]] - pad_x) / scale
+        boxes[:, [1, 3]] = (boxes[:, [1, 3]] - pad_y) / scale
+        # 裁剪到原图范围
+        boxes[:, [0, 2]] = np.clip(boxes[:, [0, 2]], 0, width)
+        boxes[:, [1, 3]] = np.clip(boxes[:, [1, 3]], 0, height)
+        return boxes, pred[:, 4].numpy(), pred[:, 5].numpy().astype(int)
 
     # -- ONNX 路径 --------------------------------------------------------
 
