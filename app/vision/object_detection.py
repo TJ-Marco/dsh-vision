@@ -113,7 +113,7 @@ class YoloDetector(BaseVisionModel):
 
         with torch.no_grad():
             out = self._model.model(torch.from_numpy(im))
-        raw = out[0] if isinstance(out, (list, tuple)) else out
+        raw = out[0] if isinstance(out, list | tuple) else out
         pred = non_max_suppression(raw, conf_thres=min_conf, iou_thres=0.45)[0]
         if pred is None or len(pred) == 0:
             return np.empty((0, 4)), np.empty(0), np.empty(0, dtype=int)
