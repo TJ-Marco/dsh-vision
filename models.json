@@ -42,7 +42,7 @@
       "sha256": null,
       "license": "MIT (weights: verify before release)",
       "size_hint_mb": 310,
-      "enabled": true
+      "enabled": false
     }
   }
 }

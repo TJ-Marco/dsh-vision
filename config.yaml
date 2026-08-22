@@ -16,7 +16,7 @@ models:
     captioning: true
     scene: true
     ocr: true
-    faces: true
+    faces: false           # 人脸识别默认关闭：涉生物特征数据与模型商用许可，公司合规一般建议禁用
   confidence:
     default: 0.35          # 全局置信度阈值；API 请求可逐次覆盖
 
